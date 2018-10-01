@@ -1,17 +1,36 @@
 import argparse
+import gc
 
 import pandas as pd
-from sklearn.metrics import accuracy_score
+import numpy as np
+import math
+import matplotlib.pyplot as plt
 
 from methods.logistic_regressor import LogisticRegressor
 from methods.predict_regressor import PredictRegressor
 from methods.scikit_regressor import ScikitRegressor
+from sklearn.metrics import accuracy_score
 
 parser = argparse.ArgumentParser(description='Logistic Regression.')
 parser.add_argument('-training', dest='training_path')
 parser.add_argument('-test', dest='test_path')
 
 FRAC_VALIDATION = 0.2
+
+def normalize(df_values, mean=None, std=None):
+
+    # Compute mean and standard deviation
+    if mean is None:
+        mean = np.mean(df_values, axis=0)
+    if std is None:
+        sum = np.sum(df_values, axis=0)
+        std = np.sqrt((sum ** 2 - 2 * sum * mean + mean ** 2) / (len(mean) - 1))
+
+    # Normalization
+    for i in range(len(df_values)):
+        df_values[i] = (df_values[i] - mean)/std
+
+    return df_values, mean, std
 
 def logistic_regression_one_vs_all(train_set_x, train_set_y, val_set_x, val_set_y, test_set_x, test_set_y):
     print("Starting Logistic Regression One-vs-All...")
@@ -118,8 +137,8 @@ def scikit_multinomial_logistic_regression(train_set_x, train_set_y, val_set_x, 
 def init_dataset(args):
     print("Initializing dataset...")
 
-    df_train = pd.read_csv(args.training_path)
-    test_set = pd.read_csv(args.test_path)
+    df_train = pd.read_csv(args.training_path, dtype=float)
+    test_set = pd.read_csv(args.test_path, dtype=float)
 
     # Split training data in training and validation
     validation_set = df_train.sample(frac=FRAC_VALIDATION, random_state=1)
@@ -139,6 +158,11 @@ def init_dataset(args):
     # Split validation set in variables(x) and target(y)
     test_set_x = test_set.iloc[:, 1:test_set.shape[1]]
     test_set_y = test_set.iloc[:, 0]
+
+    # Data pre-processing
+    training_set_x, training_mean, training_std = normalize(training_set_x.values)
+    validation_set_x, _, _ = normalize(validation_set_x.values, training_mean, training_std)
+    test_set_x, _, _ = normalize(test_set_x.values, training_mean, training_std)
 
     return training_set_x, training_set_y, validation_set_x, validation_set_y, test_set_x, test_set_y
 

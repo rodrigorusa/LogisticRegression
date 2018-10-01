@@ -38,7 +38,7 @@ class LogisticRegressor:
 
         # Define x0 = 1
         ones = np.ones((train_x.shape[0], 1))
-        train_x = np.concatenate((ones, train_x), axis=1)
+        train_x = np.concatenate([ones, train_x], axis=1)
         val_x = np.concatenate((ones[0:val_x.shape[0]], val_x), axis=1)
 
         # Data dimensions
@@ -65,6 +65,7 @@ class LogisticRegressor:
                 # For each variable Xn, calculate the gradient
                 tmp = (h - train_y).dot(train_x)
                 tmp_params = tmp / m
+
             if(type == 'multinomial'):
                 # Compute model h_theta(x)
                 h = CostCalculus.h_theta_softmax(params, train_x)
@@ -77,11 +78,19 @@ class LogisticRegressor:
             # Update coefficients
             params = params - learning_rate * tmp_params
 
-            # Compute Error
-            train_error[k] = CostCalculus.compute_error_logistic(params, train_x, train_y)
+            if (type == 'onevsall'):
+                # Compute Error
+                train_error[k] = CostCalculus.compute_error_logistic(params, train_x, train_y)
 
-            # Validation Error
-            val_error[k] = CostCalculus.compute_error_logistic(params, val_x, val_y)
+                # Validation Error
+                val_error[k] = CostCalculus.compute_error_logistic(params, val_x, val_y)
+
+            if (type == 'multinomial'):
+                # Compute Error
+                train_error[k] = CostCalculus.compute_error_softmax(params, train_x, train_y)
+
+                # Validation Error
+                val_error[k] = CostCalculus.compute_error_softmax(params, val_x, val_y)
 
             print('Iteration:', k, ', ( Training Error:', train_error[k], ', Validation Error:', val_error[k]), ')'
 

@@ -12,12 +12,11 @@ class PredictRegressor:
         x = np.concatenate((ones, x), axis=1)
         classes = np.zeros((x.shape[0], 1))
         for regressor in regressors:
-            if (type == 'onevsall'):
-                result = CostCalculus.h_theta_logistic(regressor['regressor'], x)
-            if (type == 'multinomial'):
-                result = CostCalculus.h_theta_softmax(regressor['regressor'], x)
-            idxs_result = result > 0.5
-            classes[idxs_result] = regressor['classification']
+            result = x.dot(regressor['regressor'])
+            if type == 'onevsall':
+                classes = result.squeeze() == 0
+            else:  # multiclassification
+                classes = np.argmax(result, axis=0)
 
         return classes
 

@@ -28,6 +28,6 @@ class CostCalculus:
     def compute_error_softmax(params, x, y):
         m = x.shape[0]
         h = CostCalculus.h_theta_softmax(params, x)
-        tmp = y * np.log(h) + (1.0 - y) * np.log(1.0 - h)
+        tmp = -np.log(h[y == 1])
 
-        return np.sum(tmp)/(-1.0*m)
+        return np.sum(tmp)/m
