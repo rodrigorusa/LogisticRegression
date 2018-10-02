@@ -149,8 +149,12 @@ class LogisticRegressor:
         n = train_x.shape[1]
         m = train_x.shape[0]
 
-        # Set random parameters values [0,1) to start
-        params = np.random.rand(n)
+        if (type == 'onevsall'):
+            # Set random parameters values [0,1) to start
+            params = np.random.rand(n)
+        if (type == 'multinomial'):
+            # Set random parameters values [0,1) to start
+            params = np.random.rand(train_y.shape[1], n)
 
         # Array error per iteration
         train_error = np.zeros(max_iterations + 1)
@@ -168,11 +172,19 @@ class LogisticRegressor:
 
             params_array = np.array([params, ] * m)
 
-            # Compute Error
-            train_error[k] = CostCalculus.compute_error_logistic(params_array, train_x, train_y, axis=1)
+            if (type == 'onevsall'):
+                # Compute Error
+                train_error[k] = CostCalculus.compute_error_logistic(params, train_x, train_y)
 
-            # Validation Error
-            val_error[k] = CostCalculus.compute_error_logistic(params_array[0:val_x.shape[0], :], val_x, val_y, axis=1)
+                # Validation Error
+                val_error[k] = CostCalculus.compute_error_logistic(params, val_x, val_y)
+
+            if (type == 'multinomial'):
+                # Compute Error
+                train_error[k] = CostCalculus.compute_error_softmax(params, train_x, train_y)
+
+                # Validation Error
+                val_error[k] = CostCalculus.compute_error_softmax(params, val_x, val_y)
 
             print('Iteration:', k, ', ( Training Error:', train_error[k], ', Validation Error:', val_error[k]), ')'
 
@@ -228,11 +240,19 @@ class LogisticRegressor:
 
             params_array = np.array([params[0, :], ] * m)
 
-            # Compute Error
-            train_error[k] = CostCalculus.compute_error_logistic(params_array, train_x, train_y, axis=1)
+            if (type == 'onevsall'):
+                # Compute Error
+                train_error[k] = CostCalculus.compute_error_logistic(params, train_x, train_y)
 
-            # Validation Error
-            val_error[k] = CostCalculus.compute_error_logistic(params_array[0:val_x.shape[0], :], val_x, val_y, axis=1)
+                # Validation Error
+                val_error[k] = CostCalculus.compute_error_logistic(params, val_x, val_y)
+
+            if (type == 'multinomial'):
+                # Compute Error
+                train_error[k] = CostCalculus.compute_error_softmax(params, train_x, train_y)
+
+                # Validation Error
+                val_error[k] = CostCalculus.compute_error_softmax(params, val_x, val_y)
 
             print('Iteration:', k, ', ( Training Error:', train_error[k], ', Validation Error:', val_error[k]), ')'
 
