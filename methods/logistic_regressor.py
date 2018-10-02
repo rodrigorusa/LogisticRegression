@@ -75,10 +75,10 @@ class LogisticRegressor:
 
         if (type == 'onevsall'):
             # Set random parameters values [0,1) to start
-            params = np.random.rand(n)
+            params = np.random.randn(n) * 0.001
         if (type == 'multinomial'):
             # Set random parameters values [0,1) to start
-            params = np.random.rand(train_y.shape[1], n)
+            params = np.random.randn(train_y.shape[1], n) * 0.001
 
         # Temporary parameters
         tmp_params = np.zeros(n)
@@ -151,10 +151,10 @@ class LogisticRegressor:
 
         if (type == 'onevsall'):
             # Set random parameters values [0,1) to start
-            params = np.random.rand(n)
+            params = np.random.randn(n) * 0.001
         if (type == 'multinomial'):
             # Set random parameters values [0,1) to start
-            params = np.random.rand(train_y.shape[1], n)
+            params = np.random.randn(train_y.shape[1], n) * 0.001
 
         # Array error per iteration
         train_error = np.zeros(max_iterations + 1)
