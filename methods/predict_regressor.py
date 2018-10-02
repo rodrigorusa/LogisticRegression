@@ -10,13 +10,15 @@ class PredictRegressor:
     def predict(regressors, x, type='onevsall'):
         ones = np.ones((x.shape[0], 1))
         x = np.concatenate((ones, x), axis=1)
-        classes = np.zeros((x.shape[0], 1))
-        for regressor in regressors:
-            result = x.dot(regressor['regressor'])
-            if type == 'onevsall':
-                classes = result.squeeze() == 0
-            else:  # multiclassification
-                classes = np.argmax(result, axis=0)
+        classes = []
+
+        if type == 'onevsall':
+            for regressor in regressors:
+                result = CostCalculus.h_theta_logistic(regressor['regressor'], x)
+                classes.append({'classification': regressor['classification'], 'result': result > 0.5})
+        else:  # multiclassification
+            result = CostCalculus.h_theta_softmax(regressors[0]['regressor'], x)
+            classes = np.argmax(result, axis=0)
 
         return classes
 

@@ -12,22 +12,50 @@ class LogisticRegressor:
         regressors =[]
         classes = np.unique(train_y)
 
-        for lbl in classes:
-            train_y_log = deepcopy(train_y)
-            val_y_log = deepcopy(val_y)
-            idxs_train = train_y_log == lbl
-            idxs_val = val_y_log == lbl
-            train_y_log[idxs_train] = 1
-            train_y_log[-idxs_train] = 0
-            val_y_log[idxs_val] = 1
-            val_y_log[-idxs_val] = 0
-            print('Training to class ', lbl)
+        if (type == 'onevsall'):
+            for lbl in classes:
+                train_y_log = deepcopy(train_y)
+                val_y_log = deepcopy(val_y)
+                idxs_train = train_y_log == lbl
+                idxs_val = val_y_log == lbl
+                train_y_log[idxs_train] = 1
+                train_y_log[-idxs_train] = 0
+                val_y_log[idxs_val] = 1
+                val_y_log[-idxs_val] = 0
+                print('Training to class ', lbl)
+                if (method == 'bgd'):
+                    regressor, _, _, _ = LogisticRegressor.BGDRegressor(train_x, train_y_log, val_x, val_y_log,
+                                                                        max_iterations, learning_rate, tolerance,
+                                                                        type=type)
+
+                regressors.append({
+                    'classification': lbl,
+                    'regressor': regressor
+                })
+
+        if (type == 'multinomial'):
+            train_y_log = np.zeros((len(classes), len(train_y)))
+            val_y_log = np.zeros((len(classes), len(val_y)))
+            for lbl in classes:
+                idx_lbl = int(lbl)
+                train_y_log[idx_lbl] = deepcopy(train_y)
+                val_y_log[idx_lbl] = deepcopy(val_y)
+                idxs_train = train_y_log[idx_lbl] == lbl
+                idxs_val = val_y_log[idx_lbl] == lbl
+                train_y_log[idx_lbl][idxs_train] = 1
+                train_y_log[idx_lbl][~idxs_train] = 0
+                val_y_log[idx_lbl][idxs_val] = 1
+                val_y_log[idx_lbl][~idxs_val] = 0
+
+            train_y_log = train_y_log.T
+            val_y_log = val_y_log.T
+
             if (method == 'bgd'):
-                regressor, _, _, _ = LogisticRegressor.BGDRegressor(train_x, train_y_log, val_x, val_y_log, max_iterations,
-                                                                 learning_rate, tolerance, type=type)
+                regressor, _, _, _ = LogisticRegressor.BGDRegressor(train_x, train_y_log, val_x, val_y_log,
+                                                                    max_iterations, learning_rate, tolerance,
+                                                                    type=type)
 
             regressors.append({
-                'classification': lbl,
                 'regressor': regressor
             })
 
@@ -45,8 +73,12 @@ class LogisticRegressor:
         n = train_x.shape[1]
         m = train_x.shape[0]
 
-        # Set random parameters values [0,1) to start
-        params = np.random.rand(n)
+        if (type == 'onevsall'):
+            # Set random parameters values [0,1) to start
+            params = np.random.rand(n)
+        if (type == 'multinomial'):
+            # Set random parameters values [0,1) to start
+            params = np.random.rand(train_y.shape[1], n)
 
         # Temporary parameters
         tmp_params = np.zeros(n)
@@ -71,8 +103,8 @@ class LogisticRegressor:
                 h = CostCalculus.h_theta_softmax(params, train_x)
 
                 # For each variable Xn, calculate the gradient
-                h[train_y == 1] -= 1
-                tmp = train_x.T.dot(h)
+                h[train_y.T == 1] -= 1
+                tmp = h.dot(train_x)
                 tmp_params = tmp / m
 
             # Update coefficients
