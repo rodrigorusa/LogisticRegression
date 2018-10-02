@@ -1,15 +1,12 @@
 import argparse
-import gc
 
-import pandas as pd
 import numpy as np
-import math
-import matplotlib.pyplot as plt
+import pandas as pd
+from sklearn.metrics import accuracy_score
 
 from methods.logistic_regressor import LogisticRegressor
 from methods.predict_regressor import PredictRegressor
 from methods.scikit_regressor import ScikitRegressor
-from sklearn.metrics import accuracy_score
 
 parser = argparse.ArgumentParser(description='Logistic Regression.')
 parser.add_argument('-training', dest='training_path')
@@ -24,7 +21,7 @@ def normalize(df_values, mean=None, std=None):
         mean = np.mean(df_values, axis=0)
     if std is None:
         sum = np.sum(df_values, axis=0)
-        std = np.sqrt((sum ** 2 - 2 * sum * mean + mean ** 2) / (len(mean) - 1))
+        std = np.sqrt(np.sum((sum - mean) ** 2) / (df_values.shape[0]*df_values.shape[1] - 1))
 
     # Normalization
     for i in range(len(df_values)):
@@ -56,7 +53,6 @@ def logistic_regression_one_vs_all(train_set_x, train_set_y, val_set_x, val_set_
     print('Validation accuracy: %.2f' % accuracy_score(val_set_y, PredictRegressor.predict(regressors, val_set_x)))
     print('Test accuracy: %.2f' % accuracy_score(test_set_y, PredictRegressor.predict(regressors, test_set_x)))
 
-
 def multinomial_logistic_regression(train_set_x, train_set_y, val_set_x, val_set_y, test_set_x, test_set_y):
     print("Starting Multinomial Logistic Regression...")
     val = input('Set maximum iterations (default: 100): ')
@@ -80,7 +76,6 @@ def multinomial_logistic_regression(train_set_x, train_set_y, val_set_x, val_set
     print('Training accuracy: %.2f' % accuracy_score(train_set_y, PredictRegressor.predict(regressors, train_set_x, type='multinomial')))
     print('Validation accuracy: %.2f' % accuracy_score(val_set_y, PredictRegressor.predict(regressors, val_set_x, type='multinomial')))
     print('Test accuracy: %.2f' % accuracy_score(test_set_y, PredictRegressor.predict(regressors, test_set_x, type='multinomial')))
-
 
 def scikit_ovr_logistic_regression(train_set_x, train_set_y, val_set_x, val_set_y, test_set_x, test_set_y):
     print("Starting Scikit Logistic Regression...")
