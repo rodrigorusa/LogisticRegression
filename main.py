@@ -1,11 +1,13 @@
 import argparse
+import time
 
 import numpy as np
 import pandas as pd
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, recall_score, precision_score
 
 from methods.logistic_regressor import LogisticRegressor
 from methods.predict_regressor import PredictRegressor
+from methods.regressor_stats import RegressorStats
 from methods.scikit_regressor import ScikitRegressor
 
 parser = argparse.ArgumentParser(description='Logistic Regression.')
@@ -29,6 +31,17 @@ def normalize(df_values, mean=None, std=None):
 
     return df_values, mean, std
 
+def print_stats(y_real, y_pred, data_type='Train'):
+    stats = RegressorStats.get_stats(y_real, y_pred)
+    print('%s accuracy: %.2f' % (data_type, stats['accuracy']))
+    print('%s precision: %.2f' % (data_type, stats['precision']))
+    print('%s recall: %.2f' % (data_type, stats['recall']))
+    print('%s f0.5 score: %.2f' % (data_type, stats['f0.5']))
+    print('%s f1 score: %.2f' % (data_type, stats['f1']))
+    print('%s f2 score: %.2f' % (data_type, stats['f2']))
+
+
+
 def logistic_regression_one_vs_all(train_set_x, train_set_y, val_set_x, val_set_y, test_set_x, test_set_y):
     print("Starting Logistic Regression One-vs-All...")
     val = input('Set maximum iterations (default: 100): ')
@@ -49,9 +62,9 @@ def logistic_regression_one_vs_all(train_set_x, train_set_y, val_set_x, val_set_
 
     print('\nLogistic Regressor One-vs-All:')
     print('Coefficients (model): \n', regressors)
-    print('Training accuracy: %.2f' % accuracy_score(train_set_y, PredictRegressor.predict(regressors, train_set_x)))
-    print('Validation accuracy: %.2f' % accuracy_score(val_set_y, PredictRegressor.predict(regressors, val_set_x)))
-    print('Test accuracy: %.2f' % accuracy_score(test_set_y, PredictRegressor.predict(regressors, test_set_x)))
+    print_stats(train_set_y, PredictRegressor.predict(regressors, train_set_x), data_type='Train')
+    print_stats(val_set_y, PredictRegressor.predict(regressors, val_set_x), data_type='Validation')
+    print_stats(test_set_y, PredictRegressor.predict(regressors, test_set_x), data_type='Test')
 
 def multinomial_logistic_regression(train_set_x, train_set_y, val_set_x, val_set_y, test_set_x, test_set_y):
     print("Starting Multinomial Logistic Regression...")
@@ -73,9 +86,9 @@ def multinomial_logistic_regression(train_set_x, train_set_y, val_set_x, val_set
 
     print('\nMultinomial Logistic Regressor:')
     print('Coefficients (model): \n', regressors)
-    print('Training accuracy: %.2f' % accuracy_score(train_set_y, PredictRegressor.predict(regressors, train_set_x, type='multinomial')))
-    print('Validation accuracy: %.2f' % accuracy_score(val_set_y, PredictRegressor.predict(regressors, val_set_x, type='multinomial')))
-    print('Test accuracy: %.2f' % accuracy_score(test_set_y, PredictRegressor.predict(regressors, test_set_x, type='multinomial')))
+    print_stats(train_set_y, PredictRegressor.predict(regressors, train_set_x, type='multinomial'), data_type='Train')
+    print_stats(val_set_y, PredictRegressor.predict(regressors, val_set_x, type='multinomial'), data_type='Validation')
+    print_stats(test_set_y, PredictRegressor.predict(regressors, test_set_x, type='multinomial'), data_type='Test')
 
 def scikit_ovr_logistic_regression(train_set_x, train_set_y, val_set_x, val_set_y, test_set_x, test_set_y):
     print("Starting Scikit Logistic Regression...")
@@ -83,24 +96,19 @@ def scikit_ovr_logistic_regression(train_set_x, train_set_y, val_set_x, val_set_
     max_iterations = 100
     if val != '':
         max_iterations = int(val)
-    #val = input('Set learning rate (default: 0.01): ')
-    learning_rate = 0.01
-    #if val != '':
-    #    learning_rate = float(val)
     val = input('Set tolerance (default: 0.000001): ')
     tolerance = 0.000001
     if val != '':
         tolerance = float(val)
 
-    model, train_acc, val_acc = ScikitRegressor.ovr_regressor(train_set_x, train_set_y.values, val_set_x,
-                                                              val_set_y.values, max_iterations, learning_rate, tolerance)
+    model = ScikitRegressor.ovr_regressor(train_set_x, train_set_y.values, max_iterations, tolerance)
 
     print('\nLogistic Regressor One-vs-All Scikit Learn:')
     print('Coefficients (model): \n', model.coef_)
     print('Intercept: \n', model.intercept_)
-    print('Training accuracy: %.2f' % train_acc)
-    print('Validation accuracy: %.2f' % val_acc)
-    print('Test accuracy: %.2f' % accuracy_score(test_set_y, model.predict(test_set_x)))
+    print_stats(train_set_y, model.predict(train_set_x), data_type='Train')
+    print_stats(val_set_y, model.predict(val_set_x), data_type='Validation')
+    print_stats(test_set_y, model.predict(test_set_x), data_type='Test')
 
 
 def scikit_multinomial_logistic_regression(train_set_x, train_set_y, val_set_x, val_set_y, test_set_x, test_set_y):
@@ -109,24 +117,19 @@ def scikit_multinomial_logistic_regression(train_set_x, train_set_y, val_set_x, 
     max_iterations = 100
     if val != '':
         max_iterations = int(val)
-    #val = input('Set learning rate (default: 0.01): ')
-    learning_rate = 0.01
-    #if val != '':
-    #    learning_rate = float(val)
     val = input('Set tolerance (default: 0.000001): ')
     tolerance = 0.000001
     if val != '':
         tolerance = float(val)
 
-    model, train_acc, val_acc = ScikitRegressor.multinomial_regressor(train_set_x, train_set_y.values, val_set_x,
-                                                              val_set_y.values, max_iterations, learning_rate, tolerance)
+    model = ScikitRegressor.multinomial_regressor(train_set_x, train_set_y.values, max_iterations, tolerance)
 
     print('\nMultinomial Logistic Regressor Scikit Learn:')
     print('Coefficients (model): \n', model.coef_)
     print('Intercept: \n', model.intercept_)
-    print('Training accuracy: %.2f' % train_acc)
-    print('Validation accuracy: %.2f' % val_acc)
-    print('Test accuracy: %.2f' % accuracy_score(test_set_y, model.predict(test_set_x)))
+    print_stats(train_set_y, model.predict(train_set_x), data_type='Train')
+    print_stats(val_set_y, model.predict(val_set_x), data_type='Validation')
+    print_stats(test_set_y, model.predict(test_set_x), data_type='Test')
 
 
 def init_dataset(args):
@@ -165,7 +168,9 @@ def init_dataset(args):
 def main():
     args = parser.parse_args()
 
+    start_time = time.process_time()
     training_set_x, training_set_y, validation_set_x, validation_set_y, test_set_x, test_set_y = init_dataset(args)
+    print("Dataset initialization time: %s seconds" % str(time.process_time() - start_time))
 
     print('Choose your method:')
     print('1 - Logistic Regression One-vs-All')
@@ -176,6 +181,8 @@ def main():
 
     option = int(input('Option: '))
 
+    start_time = time.process_time()
+
     if option == 1:
         logistic_regression_one_vs_all(training_set_x, training_set_y, validation_set_x, validation_set_y, test_set_x, test_set_y)
     elif option == 2:
@@ -184,6 +191,8 @@ def main():
         scikit_ovr_logistic_regression(training_set_x, training_set_y, validation_set_x, validation_set_y, test_set_x, test_set_y)
     elif option == 4:
         scikit_multinomial_logistic_regression(training_set_x, training_set_y, validation_set_x, validation_set_y, test_set_x, test_set_y)
+
+    print("Execution time: %s seconds" % str(time.process_time() - start_time))
 
 
 if __name__ == '__main__':

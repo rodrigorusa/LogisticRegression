@@ -2,7 +2,7 @@ import numpy as np
 
 from copy import deepcopy
 
-from methods.general import CostCalculus
+from methods.cost_calculus import CostCalculus
 
 
 class PredictRegressor:
@@ -27,13 +27,4 @@ class PredictRegressor:
             classes = np.argmax(result, axis=0)
 
         return classes
-
-
-    def accuracy(y_real, y_pred):
-        oks = deepcopy(y_pred)
-        idxs = y_real == y_pred
-        oks[idxs] = 1
-        oks[-idxs] = 0
-
-        return np.count_nonzero(oks)/len(y_real)
 
