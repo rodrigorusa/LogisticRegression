@@ -4,6 +4,7 @@ import time
 import numpy as np
 import pandas as pd
 
+from methods.cost_calculus import CostCalculus
 from methods.logistic_regressor import LogisticRegressor
 from metric.confusion_matrix import ConfusionMatrix
 from metric.predict_regressor import PredictRegressor
@@ -24,6 +25,7 @@ parser = argparse.ArgumentParser(description='Logistic Regression.')
 parser.add_argument('-training', dest='training_path')
 parser.add_argument('-test', dest='test_path')
 parser.add_argument('-plot-confusion-matrix', dest='plot_confusion_matrix', type=str2bool, nargs='?')
+parser.add_argument('-plot-error', dest='plot_error', type=str2bool, nargs='?')
 
 FRAC_VALIDATION = 0.2
 
@@ -51,6 +53,10 @@ def print_stats(y_real, y_pred, data_type='Train'):
     print('%s f1 score: %.2f' % (data_type, stats['f1']))
     print('%s f2 score: %.2f' % (data_type, stats['f2']))
 
+def print_regressors(regressors):
+    for regressor in regressors:
+        print(regressor['regressor'])
+
 def logistic_regression_one_vs_all(args, classes, train_set_x, train_set_y, val_set_x, val_set_y, test_set_x, test_set_y):
     print("Starting Logistic Regression One-vs-All...")
     val = input('Set maximum iterations (default: 100): ')
@@ -72,7 +78,10 @@ def logistic_regression_one_vs_all(args, classes, train_set_x, train_set_y, val_
                                              learning_rate, tolerance, method='bgd', type='onevsall')
 
     print('\nLogistic Regressor One-vs-All:')
-    print('Coefficients (model): \n', regressors)
+    print('Coefficients (model): ')
+    print_regressors(regressors)
+    print('Final mean train error (all classes): \n', RegressorStats.mean_error(regressors, 'train_error'))
+    print('Final mean validation error (all classes): \n', RegressorStats.mean_error(regressors, 'val_error'))
     print_stats(train_set_y, PredictRegressor.predict(regressors, train_set_x), data_type='Train')
     print_stats(val_set_y, PredictRegressor.predict(regressors, val_set_x), data_type='Validation')
     print_stats(test_set_y, PredictRegressor.predict(regressors, test_set_x), data_type='Test')
@@ -82,6 +91,9 @@ def logistic_regression_one_vs_all(args, classes, train_set_x, train_set_y, val_
     if (args.plot_confusion_matrix):
         ConfusionMatrix.plot_confusion_matrix(test_set_y, PredictRegressor.predict(regressors, test_set_x),
                                               classes)
+
+    if(args.plot_error):
+        CostCalculus.plot_error_logistic(regressors, classes)
 
 def multinomial_logistic_regression(args, classes, train_set_x, train_set_y, val_set_x, val_set_y, test_set_x, test_set_y):
     print("Starting Multinomial Logistic Regression...")
@@ -104,7 +116,9 @@ def multinomial_logistic_regression(args, classes, train_set_x, train_set_y, val
               method='bgd', type='multinomial')
 
     print('\nMultinomial Logistic Regressor:')
-    print('Coefficients (model): \n', regressors)
+    print('Coefficients (model): \n', regressors[0]['regressor'])
+    print('Final Train error: \n', regressors[0]['train_error'][regressors[0]['final_iteration']])
+    print('Final validation error: \n', regressors[0]['val_error'][regressors[0]['final_iteration']])
     print_stats(train_set_y, PredictRegressor.predict(regressors, train_set_x, type='multinomial'), data_type='Train')
     print_stats(val_set_y, PredictRegressor.predict(regressors, val_set_x, type='multinomial'), data_type='Validation')
     print_stats(test_set_y, PredictRegressor.predict(regressors, test_set_x, type='multinomial'), data_type='Test')
@@ -115,6 +129,9 @@ def multinomial_logistic_regression(args, classes, train_set_x, train_set_y, val
         ConfusionMatrix.plot_confusion_matrix(test_set_y,
                                               PredictRegressor.predict(regressors, test_set_x, type='multinomial'),
                                               classes)
+
+    if(args.plot_error):
+        CostCalculus.plot_error_softmax(regressors)
 
 def scikit_ovr_logistic_regression(args, classes, train_set_x, train_set_y, val_set_x, val_set_y, test_set_x, test_set_y):
     print("Starting Scikit Logistic Regression...")

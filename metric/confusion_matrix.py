@@ -13,10 +13,11 @@ class ConfusionMatrix:
         np.set_printoptions(precision=2)
 
         # Plot normalized confusion matrix
-        plt.figure()
+        fig = plt.figure()
         ConfusionMatrix.plot_matrix(cnf_matrix, classes=classes, normalize=normalize,
                               title=title)
         plt.show()
+        fig.savefig('confusion_matrix.png')
 
     @staticmethod
     def plot_matrix(cm, classes, normalize=False,

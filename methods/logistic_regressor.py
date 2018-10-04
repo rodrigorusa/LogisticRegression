@@ -24,13 +24,17 @@ class LogisticRegressor:
                 val_y_log[-idxs_val] = 0
                 print('Training to class ', lbl)
                 if (method == 'bgd'):
-                    regressor, _, _, _ = LogisticRegressor.BGDRegressor(train_x, train_y_log, val_x, val_y_log,
+                    regressor, train_error, val_error, iteration = LogisticRegressor.BGDRegressor(train_x, train_y_log,
+                                                                        val_x, val_y_log,
                                                                         max_iterations, learning_rate, tolerance,
                                                                         type=type)
 
                 regressors.append({
                     'classification': lbl,
-                    'regressor': regressor
+                    'regressor': regressor,
+                    'train_error': train_error,
+                    'val_error': val_error,
+                    'final_iteration': iteration
                 })
 
         if (type == 'multinomial'):
@@ -51,12 +55,16 @@ class LogisticRegressor:
             val_y_log = val_y_log.T
 
             if (method == 'bgd'):
-                regressor, _, _, _ = LogisticRegressor.BGDRegressor(train_x, train_y_log, val_x, val_y_log,
+                regressor, train_error, val_error, iteration = LogisticRegressor.BGDRegressor(train_x, train_y_log,
+                                                                    val_x, val_y_log,
                                                                     max_iterations, learning_rate, tolerance,
                                                                     type=type)
 
             regressors.append({
-                'regressor': regressor
+                'regressor': regressor,
+                'train_error': train_error,
+                'val_error': val_error,
+                'final_iteration': iteration
             })
 
         return regressors

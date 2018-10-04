@@ -22,3 +22,15 @@ class RegressorStats:
         beta_sq = beta ** 2
 
         return (1 + beta_sq) * precision * recall / (beta_sq * precision + recall)
+
+
+    @staticmethod
+    def mean_error(regressors, value):
+        sum = 0
+        total = 0
+
+        for regressor in regressors:
+            sum += regressor[value][regressor['final_iteration']]
+            total += 1
+
+        return sum / total
