@@ -11,11 +11,11 @@ pandas / matplotlib / numpy / scipy / scikit-learn / python-tk / python 3.3 or s
 
 On LogisticRegression folder:
 
-python -m py_compile methods/*.py metric/*.py main.py
+python3 -m py_compile methods/*.py metric/*.py main.py
 
 ### To execute:
 
-python main.py
+python3 main.py
 
 **usage:** main.py [-h] [-training TRAINING_PATH]
                [-test TEST_PATH] [-plot-confusion-matrix [PLOT_CONFUSION_MATRIX]]
